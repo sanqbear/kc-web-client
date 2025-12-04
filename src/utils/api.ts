@@ -21,6 +21,11 @@ import type {
   UpdateTagRequest,
   AddTagRequest,
 } from '@/types/ticket'
+import type {
+  ListEmailsResponse,
+  GetEmailDetailResponse,
+  EwsHealthResponse,
+} from '@/types/ews'
 
 const API_BASE = '/api'
 
@@ -197,6 +202,20 @@ export const tagApi = {
     request<{ message: string }>(`/tags/${id}`, {
       method: 'DELETE',
     }),
+}
+
+export const ewsApi = {
+  health: () => request<EwsHealthResponse>('/plugins/ews/health'),
+
+  listEmails: (mailbox: string, folder = 'inbox', limit = 50, offset = 0) =>
+    request<ListEmailsResponse>(
+      `/plugins/ews/emails?mailbox=${encodeURIComponent(mailbox)}&folder=${folder}&limit=${limit}&offset=${offset}`,
+    ),
+
+  getEmailDetail: (mailbox: string, itemId: string) =>
+    request<GetEmailDetailResponse>(
+      `/plugins/ews/email?mailbox=${encodeURIComponent(mailbox)}&item_id=${encodeURIComponent(itemId)}`,
+    ),
 }
 
 export { ApiError }

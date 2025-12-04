@@ -3,7 +3,7 @@ import { onMounted, ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTicketStore } from '@/stores/ticket'
-import { KcButton, KcSelect, KcEditor } from '@/components/ui'
+import { KcButton, KcSelect, KcEditor, EmailImportModal } from '@/components/ui'
 import type { SelectOption } from '@/components/ui/KcSelect.vue'
 import type { EditorFormat } from '@/components/ui/KcEditor.vue'
 import type {
@@ -28,6 +28,15 @@ const requestType = ref<TicketRequestType>('GENERAL_INQUIRY')
 const dueDate = ref('')
 const bodyContent = ref('')
 const bodyFormat = ref<EditorFormat>('PLAIN_TEXT')
+
+// Email import modal
+const showEmailImportModal = ref(false)
+
+function handleEmailImport(data: { title: string; body: string; bodyType: 'HTML' | 'Text' }) {
+  title.value = data.title
+  bodyContent.value = data.body
+  bodyFormat.value = data.bodyType === 'HTML' ? 'HTML' : 'PLAIN_TEXT'
+}
 
 // EditorFormat to ContentFormat mapping
 function toContentFormat(format: EditorFormat): ContentFormat {
@@ -133,6 +142,21 @@ async function handleSubmit() {
 
     <!-- Form card -->
     <div class="bg-white rounded-xl shadow-sm border border-secondary-200 p-6 max-w-2xl">
+      <!-- Import from email button (only for create mode) -->
+      <div v-if="!isEditMode" class="mb-6 pb-4 border-b border-secondary-200">
+        <KcButton
+          type="button"
+          variant="outline"
+          size="sm"
+          @click="showEmailImportModal = true"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          {{ t('ews.importFromEmail') }}
+        </KcButton>
+      </div>
+
       <form @submit.prevent="handleSubmit" class="space-y-6">
         <!-- Title -->
         <div>
@@ -211,5 +235,11 @@ async function handleSubmit() {
         </div>
       </form>
     </div>
+
+    <!-- Email Import Modal -->
+    <EmailImportModal
+      v-model="showEmailImportModal"
+      @import="handleEmailImport"
+    />
   </div>
 </template>
