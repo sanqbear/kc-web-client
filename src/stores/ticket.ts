@@ -25,10 +25,10 @@ export const useTicketStore = defineStore('ticket', () => {
 
     try {
       const response = await ticketApi.list(page, limit)
-      tickets.value = response.data
-      totalCount.value = response.total_count
-      totalPages.value = response.total_pages
-      currentPage.value = response.page
+      tickets.value = response.data ?? []
+      totalCount.value = response.total_count ?? 0
+      totalPages.value = response.total_pages ?? 0
+      currentPage.value = response.page ?? 1
       return true
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to fetch tickets'
@@ -116,10 +116,10 @@ export const useTicketStore = defineStore('ticket', () => {
 
     try {
       const response = await ticketApi.search(searchData, page, limit)
-      tickets.value = response.data
-      totalCount.value = response.total_count
-      totalPages.value = response.total_pages
-      currentPage.value = response.page
+      tickets.value = response.data ?? []
+      totalCount.value = response.total_count ?? 0
+      totalPages.value = response.total_pages ?? 0
+      currentPage.value = response.page ?? 1
       return true
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to search tickets'

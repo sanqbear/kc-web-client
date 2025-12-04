@@ -3,11 +3,14 @@ import { onMounted, ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTicketStore } from '@/stores/ticket'
-import { KcButton } from '@/components/ui'
+import { KcButton, KcSelect, KcEditor } from '@/components/ui'
+import type { SelectOption } from '@/components/ui/KcSelect.vue'
+import type { EditorFormat } from '@/components/ui/KcEditor.vue'
 import type {
   TicketStatus,
   TicketPriority,
   TicketRequestType,
+  ContentFormat,
 } from '@/types/ticket'
 
 const { t } = useI18n()
@@ -23,25 +26,36 @@ const status = ref<TicketStatus>('OPEN')
 const priority = ref<TicketPriority>('MEDIUM')
 const requestType = ref<TicketRequestType>('GENERAL_INQUIRY')
 const dueDate = ref('')
-const initialEntryBody = ref('')
+const bodyContent = ref('')
+const bodyFormat = ref<EditorFormat>('PLAIN_TEXT')
 
-const statusOptions: TicketStatus[] = [
-  'OPEN',
-  'WAITING_FOR_INFO',
-  'IN_PROGRESS',
-  'RESOLVED',
-  'CLOSED',
-  'REOPENED',
-]
+// EditorFormat to ContentFormat mapping
+function toContentFormat(format: EditorFormat): ContentFormat {
+  return format as ContentFormat
+}
 
-const priorityOptions: TicketPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']
+const statusOptions = computed<SelectOption[]>(() => [
+  { value: 'OPEN', label: t('ticket.statusValues.OPEN') },
+  { value: 'WAITING_FOR_INFO', label: t('ticket.statusValues.WAITING_FOR_INFO') },
+  { value: 'IN_PROGRESS', label: t('ticket.statusValues.IN_PROGRESS') },
+  { value: 'RESOLVED', label: t('ticket.statusValues.RESOLVED') },
+  { value: 'CLOSED', label: t('ticket.statusValues.CLOSED') },
+  { value: 'REOPENED', label: t('ticket.statusValues.REOPENED') },
+])
 
-const requestTypeOptions: TicketRequestType[] = [
-  'BUG',
-  'MAINTENANCE',
-  'FEATURE_REQUEST',
-  'GENERAL_INQUIRY',
-]
+const priorityOptions = computed<SelectOption[]>(() => [
+  { value: 'LOW', label: t('ticket.priorityValues.LOW') },
+  { value: 'MEDIUM', label: t('ticket.priorityValues.MEDIUM') },
+  { value: 'HIGH', label: t('ticket.priorityValues.HIGH') },
+  { value: 'CRITICAL', label: t('ticket.priorityValues.CRITICAL') },
+])
+
+const requestTypeOptions = computed<SelectOption[]>(() => [
+  { value: 'BUG', label: t('ticket.requestTypeValues.BUG') },
+  { value: 'MAINTENANCE', label: t('ticket.requestTypeValues.MAINTENANCE') },
+  { value: 'FEATURE_REQUEST', label: t('ticket.requestTypeValues.FEATURE_REQUEST') },
+  { value: 'GENERAL_INQUIRY', label: t('ticket.requestTypeValues.GENERAL_INQUIRY') },
+])
 
 onMounted(async () => {
   if (isEditMode.value) {
@@ -80,7 +94,7 @@ async function handleSubmit() {
       router.push({ name: 'ticket-detail', params: { id: ticketId.value } })
     }
   } else {
-    if (!title.value.trim() || !initialEntryBody.value.trim()) {
+    if (!title.value.trim() || !bodyContent.value.trim()) {
       return
     }
     const ticket = await ticketStore.createTicket({
@@ -90,9 +104,9 @@ async function handleSubmit() {
       request_type: requestType.value,
       due_date: dueDate.value ? new Date(dueDate.value).toISOString() : undefined,
       initial_entry: {
-        body: initialEntryBody.value,
+        body: bodyContent.value,
         entry_type: 'COMMENT',
-        format: 'PLAIN_TEXT',
+        format: toContentFormat(bodyFormat.value),
       },
     })
     if (ticket) {
@@ -137,50 +151,23 @@ async function handleSubmit() {
 
         <!-- Status, Priority, Request Type grid -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label for="status" class="block text-sm font-medium text-secondary-700 mb-1">
-              {{ t('ticket.status') }}
-            </label>
-            <select
-              id="status"
-              v-model="status"
-              class="block w-full px-3 py-2 border border-secondary-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
-            >
-              <option v-for="opt in statusOptions" :key="opt" :value="opt">
-                {{ t(`ticket.statusValues.${opt}`) }}
-              </option>
-            </select>
-          </div>
+          <KcSelect
+            v-model="status"
+            :label="t('ticket.status')"
+            :options="statusOptions"
+          />
 
-          <div>
-            <label for="priority" class="block text-sm font-medium text-secondary-700 mb-1">
-              {{ t('ticket.priority') }}
-            </label>
-            <select
-              id="priority"
-              v-model="priority"
-              class="block w-full px-3 py-2 border border-secondary-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
-            >
-              <option v-for="opt in priorityOptions" :key="opt" :value="opt">
-                {{ t(`ticket.priorityValues.${opt}`) }}
-              </option>
-            </select>
-          </div>
+          <KcSelect
+            v-model="priority"
+            :label="t('ticket.priority')"
+            :options="priorityOptions"
+          />
 
-          <div>
-            <label for="requestType" class="block text-sm font-medium text-secondary-700 mb-1">
-              {{ t('ticket.requestType') }}
-            </label>
-            <select
-              id="requestType"
-              v-model="requestType"
-              class="block w-full px-3 py-2 border border-secondary-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
-            >
-              <option v-for="opt in requestTypeOptions" :key="opt" :value="opt">
-                {{ t(`ticket.requestTypeValues.${opt}`) }}
-              </option>
-            </select>
-          </div>
+          <KcSelect
+            v-model="requestType"
+            :label="t('ticket.requestType')"
+            :options="requestTypeOptions"
+          />
         </div>
 
         <!-- Due Date -->
@@ -196,20 +183,17 @@ async function handleSubmit() {
           />
         </div>
 
-        <!-- Initial Entry (only for create mode) -->
-        <div v-if="!isEditMode">
-          <label for="initialEntry" class="block text-sm font-medium text-secondary-700 mb-1">
-            {{ t('ticket.initialEntry') }} <span class="text-danger-500">*</span>
-          </label>
-          <textarea
-            id="initialEntry"
-            v-model="initialEntryBody"
-            rows="5"
-            required
-            class="block w-full px-3 py-2 border border-secondary-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors resize-none"
-            :placeholder="t('ticket.initialEntryPlaceholder')"
-          ></textarea>
-        </div>
+        <!-- Body (only for create mode) -->
+        <KcEditor
+          v-if="!isEditMode"
+          v-model="bodyContent"
+          :format="bodyFormat"
+          :label="t('ticket.body')"
+          :placeholder="t('ticket.bodyPlaceholder')"
+          :rows="8"
+          required
+          @update:format="bodyFormat = $event"
+        />
 
         <!-- Error message -->
         <div v-if="ticketStore.error" class="p-3 bg-danger-50 border border-danger-200 rounded-lg">
