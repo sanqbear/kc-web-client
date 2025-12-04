@@ -123,7 +123,7 @@ function getUserName(name?: { first?: string; last?: string }) {
         </div>
 
         <!-- Ticket metadata grid -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
           <div>
             <p class="text-sm text-secondary-500 mb-1">{{ t('ticket.status') }}</p>
             <span
@@ -150,6 +150,12 @@ function getUserName(name?: { first?: string; last?: string }) {
             <p class="text-sm text-secondary-500 mb-1">{{ t('ticket.requestType') }}</p>
             <p class="text-sm font-medium text-secondary-900">
               {{ t(`ticket.requestTypeValues.${ticketStore.currentTicket.request_type}`) }}
+            </p>
+          </div>
+          <div>
+            <p class="text-sm text-secondary-500 mb-1">{{ t('ticket.assignee') }}</p>
+            <p class="text-sm font-medium text-secondary-900">
+              {{ ticketStore.currentTicket.assigned_user_name ? getUserName(ticketStore.currentTicket.assigned_user_name) : t('ticket.unassigned') }}
             </p>
           </div>
           <div>
@@ -227,7 +233,16 @@ function getUserName(name?: { first?: string; last?: string }) {
                 {{ formatDate(entry.created_at) }}
               </span>
             </div>
-            <p class="text-secondary-700 whitespace-pre-wrap">{{ entry.body }}</p>
+            <!-- Entry body with format-aware rendering -->
+            <div
+              v-if="entry.format === 'HTML'"
+              class="prose prose-sm max-w-none text-secondary-700"
+              v-html="entry.body"
+            />
+            <pre
+              v-else
+              class="text-secondary-700 whitespace-pre-wrap font-sans text-sm m-0"
+            >{{ entry.body }}</pre>
           </div>
         </div>
 

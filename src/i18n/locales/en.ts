@@ -63,6 +63,8 @@ export default {
     status: 'Status',
     priority: 'Priority',
     requestType: 'Request Type',
+    assignee: 'Assignee',
+    unassigned: 'Unassigned',
     dueDate: 'Due Date',
     createdAt: 'Created',
     updatedAt: 'Updated',

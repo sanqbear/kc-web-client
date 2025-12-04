@@ -3,6 +3,7 @@ import { onMounted, ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTicketStore } from '@/stores/ticket'
+import { userApi } from '@/utils/api'
 import { KcButton, KcSelect, KcEditor, EmailImportModal } from '@/components/ui'
 import type { SelectOption } from '@/components/ui/KcSelect.vue'
 import type { EditorFormat } from '@/components/ui/KcEditor.vue'
@@ -12,6 +13,7 @@ import type {
   TicketRequestType,
   ContentFormat,
 } from '@/types/ticket'
+import type { UserInfo } from '@/types/auth'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -25,9 +27,14 @@ const title = ref('')
 const status = ref<TicketStatus>('OPEN')
 const priority = ref<TicketPriority>('MEDIUM')
 const requestType = ref<TicketRequestType>('GENERAL_INQUIRY')
+const assignedUserId = ref<string>('')
 const dueDate = ref('')
 const bodyContent = ref('')
 const bodyFormat = ref<EditorFormat>('PLAIN_TEXT')
+
+// User list for assignee dropdown
+const users = ref<UserInfo[]>([])
+const loadingUsers = ref(false)
 
 // Email import modal
 const showEmailImportModal = ref(false)
@@ -66,7 +73,32 @@ const requestTypeOptions = computed<SelectOption[]>(() => [
   { value: 'GENERAL_INQUIRY', label: t('ticket.requestTypeValues.GENERAL_INQUIRY') },
 ])
 
+const assigneeOptions = computed<SelectOption[]>(() => {
+  const options: SelectOption[] = [{ value: '', label: t('ticket.unassigned') }]
+  for (const user of users.value) {
+    const displayName = user.name.display || `${user.name.last || ''}${user.name.first || ''}` || user.email
+    options.push({ value: user.id, label: displayName })
+  }
+  return options
+})
+
+async function fetchUsers() {
+  loadingUsers.value = true
+  try {
+    const response = await userApi.list(1, 100)
+    users.value = response.data
+  } catch {
+    // Silently fail - users list is optional
+    users.value = []
+  } finally {
+    loadingUsers.value = false
+  }
+}
+
 onMounted(async () => {
+  // Fetch users for assignee dropdown
+  await fetchUsers()
+
   if (isEditMode.value) {
     const success = await ticketStore.fetchTicket(ticketId.value)
     if (success && ticketStore.currentTicket) {
@@ -74,6 +106,7 @@ onMounted(async () => {
       status.value = ticketStore.currentTicket.status
       priority.value = ticketStore.currentTicket.priority
       requestType.value = ticketStore.currentTicket.request_type
+      assignedUserId.value = ticketStore.currentTicket.assigned_user_id || ''
       if (ticketStore.currentTicket.due_date) {
         const datePart = ticketStore.currentTicket.due_date.split('T')[0]
         dueDate.value = datePart ?? ''
@@ -97,6 +130,7 @@ async function handleSubmit() {
       status: status.value,
       priority: priority.value,
       request_type: requestType.value,
+      assigned_user_id: assignedUserId.value || undefined,
       due_date: dueDate.value ? new Date(dueDate.value).toISOString() : undefined,
     })
     if (success) {
@@ -111,6 +145,7 @@ async function handleSubmit() {
       status: status.value,
       priority: priority.value,
       request_type: requestType.value,
+      assigned_user_id: assignedUserId.value || undefined,
       due_date: dueDate.value ? new Date(dueDate.value).toISOString() : undefined,
       initial_entry: {
         body: bodyContent.value,
@@ -194,17 +229,27 @@ async function handleSubmit() {
           />
         </div>
 
-        <!-- Due Date -->
-        <div>
-          <label for="dueDate" class="block text-sm font-medium text-secondary-700 mb-1">
-            {{ t('ticket.dueDate') }}
-          </label>
-          <input
-            id="dueDate"
-            v-model="dueDate"
-            type="date"
-            class="block w-full px-3 py-2 border border-secondary-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
+        <!-- Assignee and Due Date -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <KcSelect
+            v-model="assignedUserId"
+            :label="t('ticket.assignee')"
+            :options="assigneeOptions"
+            :disabled="loadingUsers"
           />
+
+          <!-- Due Date -->
+          <div>
+            <label for="dueDate" class="block text-sm font-medium text-secondary-700 mb-1">
+              {{ t('ticket.dueDate') }}
+            </label>
+            <input
+              id="dueDate"
+              v-model="dueDate"
+              type="date"
+              class="block w-full px-3 py-2 border border-secondary-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
+            />
+          </div>
         </div>
 
         <!-- Body (only for create mode) -->

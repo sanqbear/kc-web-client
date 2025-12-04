@@ -5,6 +5,7 @@ import type {
   RegisterResponse,
   MeResponse,
   TokenResponse,
+  UserInfo,
 } from '@/types/auth'
 import type {
   TicketListResponse,
@@ -216,6 +217,11 @@ export const ewsApi = {
     request<GetEmailDetailResponse>(
       `/plugins/ews/email?mailbox=${encodeURIComponent(mailbox)}&item_id=${encodeURIComponent(itemId)}`,
     ),
+}
+
+export const userApi = {
+  list: (page = 1, limit = 100) =>
+    request<PaginatedResponse<UserInfo>>(`/users?page=${page}&limit=${limit}`),
 }
 
 export { ApiError }

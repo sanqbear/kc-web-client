@@ -63,6 +63,8 @@ export default {
     status: '상태',
     priority: '우선순위',
     requestType: '요청 유형',
+    assignee: '담당자',
+    unassigned: '미지정',
     dueDate: '마감일',
     createdAt: '생성일',
     updatedAt: '수정일',
