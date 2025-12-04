@@ -22,6 +22,30 @@ const router = createRouter({
       component: () => import('@/views/RegisterView.vue'),
       meta: { guest: true },
     },
+    {
+      path: '/tickets',
+      name: 'tickets',
+      component: () => import('@/views/tickets/TicketListView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tickets/new',
+      name: 'ticket-create',
+      component: () => import('@/views/tickets/TicketFormView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tickets/:id',
+      name: 'ticket-detail',
+      component: () => import('@/views/tickets/TicketDetailView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/tickets/:id/edit',
+      name: 'ticket-edit',
+      component: () => import('@/views/tickets/TicketFormView.vue'),
+      meta: { requiresAuth: true },
+    },
   ],
 })
 
