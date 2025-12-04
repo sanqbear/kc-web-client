@@ -3,6 +3,7 @@ import { onMounted, ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTicketStore } from '@/stores/ticket'
+import { KcButton } from '@/components/ui'
 import type {
   TicketStatus,
   TicketPriority,
@@ -102,46 +103,48 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="p-6">
-    <div class="mb-4">
-      <button
-        @click="goBack"
-        class="text-gray-600 hover:text-gray-800 flex items-center gap-1"
-      >
-        <span>&larr;</span>
-        <span>{{ t('common.back') }}</span>
-      </button>
-    </div>
-
-    <div class="bg-white shadow rounded-lg p-6 max-w-2xl">
-      <h1 class="text-2xl font-bold text-gray-800 mb-6">
+  <div>
+    <!-- Page header with back button -->
+    <div class="flex items-center gap-4 mb-6">
+      <KcButton variant="ghost" size="sm" @click="goBack">
+        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        {{ t('common.back') }}
+      </KcButton>
+      <h1 class="text-2xl font-bold text-secondary-900">
         {{ isEditMode ? t('ticket.edit') : t('ticket.create') }}
       </h1>
+    </div>
 
+    <!-- Form card -->
+    <div class="bg-white rounded-xl shadow-sm border border-secondary-200 p-6 max-w-2xl">
       <form @submit.prevent="handleSubmit" class="space-y-6">
+        <!-- Title -->
         <div>
-          <label for="title" class="block text-sm font-medium text-gray-700">
-            {{ t('ticket.title') }} *
+          <label for="title" class="block text-sm font-medium text-secondary-700 mb-1">
+            {{ t('ticket.title') }} <span class="text-danger-500">*</span>
           </label>
           <input
             id="title"
             v-model="title"
             type="text"
             required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            class="block w-full px-3 py-2 border border-secondary-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
             :placeholder="t('ticket.titlePlaceholder')"
           />
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Status, Priority, Request Type grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label for="status" class="block text-sm font-medium text-gray-700">
+            <label for="status" class="block text-sm font-medium text-secondary-700 mb-1">
               {{ t('ticket.status') }}
             </label>
             <select
               id="status"
               v-model="status"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              class="block w-full px-3 py-2 border border-secondary-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
             >
               <option v-for="opt in statusOptions" :key="opt" :value="opt">
                 {{ t(`ticket.statusValues.${opt}`) }}
@@ -150,16 +153,13 @@ async function handleSubmit() {
           </div>
 
           <div>
-            <label
-              for="priority"
-              class="block text-sm font-medium text-gray-700"
-            >
+            <label for="priority" class="block text-sm font-medium text-secondary-700 mb-1">
               {{ t('ticket.priority') }}
             </label>
             <select
               id="priority"
               v-model="priority"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              class="block w-full px-3 py-2 border border-secondary-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
             >
               <option v-for="opt in priorityOptions" :key="opt" :value="opt">
                 {{ t(`ticket.priorityValues.${opt}`) }}
@@ -168,77 +168,62 @@ async function handleSubmit() {
           </div>
 
           <div>
-            <label
-              for="requestType"
-              class="block text-sm font-medium text-gray-700"
-            >
+            <label for="requestType" class="block text-sm font-medium text-secondary-700 mb-1">
               {{ t('ticket.requestType') }}
             </label>
             <select
               id="requestType"
               v-model="requestType"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              class="block w-full px-3 py-2 border border-secondary-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
             >
-              <option
-                v-for="opt in requestTypeOptions"
-                :key="opt"
-                :value="opt"
-              >
+              <option v-for="opt in requestTypeOptions" :key="opt" :value="opt">
                 {{ t(`ticket.requestTypeValues.${opt}`) }}
               </option>
             </select>
           </div>
         </div>
 
+        <!-- Due Date -->
         <div>
-          <label for="dueDate" class="block text-sm font-medium text-gray-700">
+          <label for="dueDate" class="block text-sm font-medium text-secondary-700 mb-1">
             {{ t('ticket.dueDate') }}
           </label>
           <input
             id="dueDate"
             v-model="dueDate"
             type="date"
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            class="block w-full px-3 py-2 border border-secondary-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
           />
         </div>
 
+        <!-- Initial Entry (only for create mode) -->
         <div v-if="!isEditMode">
-          <label
-            for="initialEntry"
-            class="block text-sm font-medium text-gray-700"
-          >
-            {{ t('ticket.initialEntry') }} *
+          <label for="initialEntry" class="block text-sm font-medium text-secondary-700 mb-1">
+            {{ t('ticket.initialEntry') }} <span class="text-danger-500">*</span>
           </label>
           <textarea
             id="initialEntry"
             v-model="initialEntryBody"
             rows="5"
             required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            class="block w-full px-3 py-2 border border-secondary-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors resize-none"
             :placeholder="t('ticket.initialEntryPlaceholder')"
           ></textarea>
         </div>
 
-        <div v-if="ticketStore.error" class="text-red-600 text-sm">
-          {{ ticketStore.error }}
+        <!-- Error message -->
+        <div v-if="ticketStore.error" class="p-3 bg-danger-50 border border-danger-200 rounded-lg">
+          <p class="text-sm text-danger-600">{{ ticketStore.error }}</p>
         </div>
 
-        <div class="flex justify-end gap-3">
-          <button
-            type="button"
-            @click="goBack"
-            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
+        <!-- Actions -->
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-secondary-200">
+          <KcButton variant="outline" @click="goBack">
             {{ t('common.cancel') }}
-          </button>
-          <button
-            type="submit"
-            :disabled="ticketStore.loading"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span v-if="ticketStore.loading">{{ t('common.loading') }}</span>
-            <span v-else>{{ t('common.save') }}</span>
-          </button>
+          </KcButton>
+          <KcButton type="submit" :loading="ticketStore.loading">
+            {{ ticketStore.loading ? t('common.loading') : t('common.save') }}
+          </KcButton>
         </div>
       </form>
     </div>

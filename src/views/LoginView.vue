@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
+import { KcButton, KcInput } from '@/components/ui'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -33,46 +34,35 @@ async function handleSubmit() {
       </h1>
 
       <form @submit.prevent="handleSubmit" class="space-y-6">
-        <div>
-          <label for="loginId" class="block text-sm font-medium text-gray-700">
-            {{ t('auth.loginId') }}
-          </label>
-          <input
-            id="loginId"
-            v-model="loginId"
-            type="text"
-            required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            :placeholder="t('auth.loginIdPlaceholder')"
-          />
-        </div>
+        <KcInput
+          v-model="loginId"
+          type="text"
+          :label="t('auth.loginId')"
+          :placeholder="t('auth.loginIdPlaceholder')"
+          required
+          autocomplete="username"
+        />
 
-        <div>
-          <label for="password" class="block text-sm font-medium text-gray-700">
-            {{ t('auth.password') }}
-          </label>
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            :placeholder="t('auth.passwordPlaceholder')"
-          />
-        </div>
+        <KcInput
+          v-model="password"
+          type="password"
+          :label="t('auth.password')"
+          :placeholder="t('auth.passwordPlaceholder')"
+          required
+          autocomplete="current-password"
+        />
 
-        <div v-if="authStore.error" class="text-red-600 text-sm text-center">
+        <div v-if="authStore.error" class="text-danger-600 text-sm text-center">
           {{ authStore.error }}
         </div>
 
-        <button
+        <KcButton
           type="submit"
-          :disabled="authStore.loading"
-          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          :loading="authStore.loading"
+          full-width
         >
-          <span v-if="authStore.loading">{{ t('auth.loggingIn') }}</span>
-          <span v-else>{{ t('auth.login') }}</span>
-        </button>
+          {{ authStore.loading ? t('auth.loggingIn') : t('auth.login') }}
+        </KcButton>
 
         <p class="text-center text-sm text-gray-600">
           {{ t('auth.noAccount') }}

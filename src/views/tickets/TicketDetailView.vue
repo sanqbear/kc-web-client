@@ -3,6 +3,7 @@ import { onMounted, ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTicketStore } from '@/stores/ticket'
+import { KcButton } from '@/components/ui'
 import type { TicketStatus, TicketPriority } from '@/types/ticket'
 
 const { t } = useI18n()
@@ -76,109 +77,100 @@ function getUserName(name?: { first?: string; last?: string }) {
 </script>
 
 <template>
-  <div class="p-6">
-    <div class="mb-4">
-      <button
-        @click="goBack"
-        class="text-gray-600 hover:text-gray-800 flex items-center gap-1"
-      >
-        <span>&larr;</span>
-        <span>{{ t('common.back') }}</span>
-      </button>
+  <div>
+    <!-- Page header with back button -->
+    <div class="flex items-center gap-4 mb-6">
+      <KcButton variant="ghost" size="sm" @click="goBack">
+        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        {{ t('common.back') }}
+      </KcButton>
     </div>
 
-    <div v-if="ticketStore.loading" class="text-center py-8">
-      <p class="text-gray-500">{{ t('common.loading') }}</p>
+    <!-- Loading state -->
+    <div v-if="ticketStore.loading" class="text-center py-12">
+      <div class="inline-flex items-center gap-2 text-secondary-500">
+        <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+        </svg>
+        {{ t('common.loading') }}
+      </div>
     </div>
 
-    <div v-else-if="ticketStore.error" class="text-center py-8">
-      <p class="text-red-500">{{ ticketStore.error }}</p>
+    <!-- Error state -->
+    <div v-else-if="ticketStore.error" class="text-center py-12">
+      <p class="text-danger-500">{{ ticketStore.error }}</p>
     </div>
 
+    <!-- Ticket content -->
     <div v-else-if="ticketStore.currentTicket" class="space-y-6">
-      <div class="bg-white shadow rounded-lg p-6">
-        <div class="flex justify-between items-start mb-4">
-          <h1 class="text-2xl font-bold text-gray-800">
+      <!-- Ticket header card -->
+      <div class="bg-white rounded-xl shadow-sm border border-secondary-200 p-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
+          <h1 class="text-2xl font-bold text-secondary-900">
             {{ ticketStore.currentTicket.title }}
           </h1>
-          <div class="flex gap-2">
-            <button
-              @click="editTicket"
-              class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
+          <div class="flex gap-2 shrink-0">
+            <KcButton variant="outline" size="sm" @click="editTicket">
               {{ t('common.edit') }}
-            </button>
-            <button
-              @click="showDeleteConfirm = true"
-              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-            >
+            </KcButton>
+            <KcButton variant="danger" size="sm" @click="showDeleteConfirm = true">
               {{ t('common.delete') }}
-            </button>
+            </KcButton>
           </div>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <!-- Ticket metadata grid -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div>
-            <p class="text-sm text-gray-500">{{ t('ticket.status') }}</p>
+            <p class="text-sm text-secondary-500 mb-1">{{ t('ticket.status') }}</p>
             <span
               :class="[
-                'px-2 py-1 text-xs font-medium rounded-full',
+                'inline-flex px-2.5 py-1 text-xs font-medium rounded-full',
                 statusColors[ticketStore.currentTicket.status],
               ]"
             >
-              {{
-                t(`ticket.statusValues.${ticketStore.currentTicket.status}`)
-              }}
+              {{ t(`ticket.statusValues.${ticketStore.currentTicket.status}`) }}
             </span>
           </div>
           <div>
-            <p class="text-sm text-gray-500">{{ t('ticket.priority') }}</p>
+            <p class="text-sm text-secondary-500 mb-1">{{ t('ticket.priority') }}</p>
             <span
               :class="[
-                'px-2 py-1 text-xs font-medium rounded-full',
+                'inline-flex px-2.5 py-1 text-xs font-medium rounded-full',
                 priorityColors[ticketStore.currentTicket.priority],
               ]"
             >
-              {{
-                t(`ticket.priorityValues.${ticketStore.currentTicket.priority}`)
-              }}
+              {{ t(`ticket.priorityValues.${ticketStore.currentTicket.priority}`) }}
             </span>
           </div>
           <div>
-            <p class="text-sm text-gray-500">{{ t('ticket.requestType') }}</p>
-            <p class="text-sm font-medium">
-              {{
-                t(
-                  `ticket.requestTypeValues.${ticketStore.currentTicket.request_type}`,
-                )
-              }}
+            <p class="text-sm text-secondary-500 mb-1">{{ t('ticket.requestType') }}</p>
+            <p class="text-sm font-medium text-secondary-900">
+              {{ t(`ticket.requestTypeValues.${ticketStore.currentTicket.request_type}`) }}
             </p>
           </div>
           <div>
-            <p class="text-sm text-gray-500">{{ t('ticket.dueDate') }}</p>
-            <p class="text-sm font-medium">
-              {{
-                ticketStore.currentTicket.due_date
-                  ? formatDate(ticketStore.currentTicket.due_date)
-                  : '-'
-              }}
+            <p class="text-sm text-secondary-500 mb-1">{{ t('ticket.dueDate') }}</p>
+            <p class="text-sm font-medium text-secondary-900">
+              {{ ticketStore.currentTicket.due_date ? formatDate(ticketStore.currentTicket.due_date) : '-' }}
             </p>
           </div>
         </div>
 
+        <!-- Tags -->
         <div
-          v-if="
-            ticketStore.currentTicket.tags &&
-            ticketStore.currentTicket.tags.length > 0
-          "
-          class="mb-4"
+          v-if="ticketStore.currentTicket.tags && ticketStore.currentTicket.tags.length > 0"
+          class="mb-6"
         >
-          <p class="text-sm text-gray-500 mb-2">{{ t('ticket.tags') }}</p>
+          <p class="text-sm text-secondary-500 mb-2">{{ t('ticket.tags') }}</p>
           <div class="flex flex-wrap gap-2">
             <span
               v-for="tag in ticketStore.currentTicket.tags"
               :key="tag.id"
-              class="px-2 py-1 text-xs rounded-full"
+              class="px-2.5 py-1 text-xs font-medium rounded-full"
               :style="{
                 backgroundColor: tag.color_code || '#e5e7eb',
                 color: tag.color_code ? '#fff' : '#374151',
@@ -189,105 +181,106 @@ function getUserName(name?: { first?: string; last?: string }) {
           </div>
         </div>
 
-        <div class="border-t pt-4">
-          <p class="text-sm text-gray-500">
-            {{ t('ticket.createdAt') }}:
-            {{ formatDate(ticketStore.currentTicket.created_at) }}
-          </p>
-          <p class="text-sm text-gray-500">
-            {{ t('ticket.updatedAt') }}:
-            {{ formatDate(ticketStore.currentTicket.updated_at) }}
-          </p>
+        <!-- Timestamps -->
+        <div class="border-t border-secondary-200 pt-4 flex flex-wrap gap-x-6 gap-y-1 text-sm text-secondary-500">
+          <p>{{ t('ticket.createdAt') }}: {{ formatDate(ticketStore.currentTicket.created_at) }}</p>
+          <p>{{ t('ticket.updatedAt') }}: {{ formatDate(ticketStore.currentTicket.updated_at) }}</p>
         </div>
       </div>
 
-      <div class="bg-white shadow rounded-lg p-6">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">
+      <!-- Entries section -->
+      <div class="bg-white rounded-xl shadow-sm border border-secondary-200 p-6">
+        <h2 class="text-lg font-semibold text-secondary-900 mb-4">
           {{ t('ticket.entries') }}
         </h2>
 
+        <!-- Empty entries -->
         <div
-          v-if="
-            !ticketStore.currentTicket.entries ||
-            ticketStore.currentTicket.entries.length === 0
-          "
-          class="text-center py-4"
+          v-if="!ticketStore.currentTicket.entries || ticketStore.currentTicket.entries.length === 0"
+          class="text-center py-8"
         >
-          <p class="text-gray-500">{{ t('ticket.noEntries') }}</p>
+          <div class="w-12 h-12 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg class="w-6 h-6 text-secondary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          </div>
+          <p class="text-secondary-500">{{ t('ticket.noEntries') }}</p>
         </div>
 
+        <!-- Entry list -->
         <div v-else class="space-y-4">
           <div
             v-for="entry in ticketStore.currentTicket.entries"
             :key="entry.id"
-            class="border rounded-lg p-4"
+            class="border border-secondary-200 rounded-lg p-4"
           >
-            <div class="flex justify-between items-start mb-2">
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-medium text-gray-900">
+            <div class="flex flex-col sm:flex-row justify-between items-start gap-2 mb-3">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-sm font-medium text-secondary-900">
                   {{ getUserName(entry.author_user_name) }}
                 </span>
-                <span
-                  class="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded"
-                >
+                <span class="px-2 py-0.5 text-xs bg-secondary-100 text-secondary-600 rounded-full">
                   {{ t(`ticket.entryTypes.${entry.entry_type}`) }}
                 </span>
               </div>
-              <span class="text-xs text-gray-500">
+              <span class="text-xs text-secondary-500 shrink-0">
                 {{ formatDate(entry.created_at) }}
               </span>
             </div>
-            <p class="text-gray-700 whitespace-pre-wrap">{{ entry.body }}</p>
+            <p class="text-secondary-700 whitespace-pre-wrap">{{ entry.body }}</p>
           </div>
         </div>
 
-        <div class="mt-6 border-t pt-4">
-          <h3 class="text-sm font-medium text-gray-700 mb-2">
+        <!-- Add entry form -->
+        <div class="mt-6 pt-6 border-t border-secondary-200">
+          <h3 class="text-sm font-medium text-secondary-700 mb-2">
             {{ t('ticket.addEntry') }}
           </h3>
           <textarea
             v-model="newEntryBody"
             rows="3"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 border border-secondary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors resize-none"
             :placeholder="t('ticket.entryPlaceholder')"
           ></textarea>
-          <div class="flex justify-end mt-2">
-            <button
+          <div class="flex justify-end mt-3">
+            <KcButton
+              :disabled="!newEntryBody.trim()"
+              :loading="ticketStore.loading"
               @click="addEntry"
-              :disabled="!newEntryBody.trim() || ticketStore.loading"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {{ t('ticket.submitEntry') }}
-            </button>
+            </KcButton>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Delete confirmation modal -->
     <div
       v-if="showDeleteConfirm"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
     >
-      <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">
-          {{ t('ticket.deleteConfirmTitle') }}
-        </h3>
-        <p class="text-gray-600 mb-6">
+      <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 bg-danger-100 rounded-full flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-danger-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-secondary-900">
+            {{ t('ticket.deleteConfirmTitle') }}
+          </h3>
+        </div>
+        <p class="text-secondary-600 mb-6">
           {{ t('ticket.deleteConfirmMessage') }}
         </p>
-        <div class="flex justify-end gap-2">
-          <button
-            @click="showDeleteConfirm = false"
-            class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
+        <div class="flex justify-end gap-3">
+          <KcButton variant="outline" @click="showDeleteConfirm = false">
             {{ t('common.cancel') }}
-          </button>
-          <button
-            @click="deleteTicket"
-            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-          >
+          </KcButton>
+          <KcButton variant="danger" @click="deleteTicket">
             {{ t('common.delete') }}
-          </button>
+          </KcButton>
         </div>
       </div>
     </div>

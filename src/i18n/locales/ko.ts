@@ -14,6 +14,11 @@ export default {
     prev: '이전',
     next: '다음',
   },
+  nav: {
+    home: '홈',
+    tickets: '티켓',
+    settings: '설정',
+  },
   auth: {
     login: '로그인',
     logout: '로그아웃',

@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
+import { KcButton, KcInput } from '@/components/ui'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -55,102 +56,68 @@ async function handleSubmit() {
 
       <form @submit.prevent="handleSubmit" class="space-y-4">
         <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label for="lastName" class="block text-sm font-medium text-gray-700">
-              {{ t('auth.lastName') }}
-            </label>
-            <input
-              id="lastName"
-              v-model="lastName"
-              type="text"
-              required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              :placeholder="t('auth.lastNamePlaceholder')"
-            />
-          </div>
-          <div>
-            <label for="firstName" class="block text-sm font-medium text-gray-700">
-              {{ t('auth.firstName') }}
-            </label>
-            <input
-              id="firstName"
-              v-model="firstName"
-              type="text"
-              required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              :placeholder="t('auth.firstNamePlaceholder')"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label for="loginId" class="block text-sm font-medium text-gray-700">
-            {{ t('auth.loginId') }}
-          </label>
-          <input
-            id="loginId"
-            v-model="loginId"
-            type="text"
+          <KcInput
+            v-model="lastName"
+            :label="t('auth.lastName')"
+            :placeholder="t('auth.lastNamePlaceholder')"
             required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            :placeholder="t('auth.loginIdPlaceholder')"
+            autocomplete="family-name"
+          />
+          <KcInput
+            v-model="firstName"
+            :label="t('auth.firstName')"
+            :placeholder="t('auth.firstNamePlaceholder')"
+            required
+            autocomplete="given-name"
           />
         </div>
 
-        <div>
-          <label for="email" class="block text-sm font-medium text-gray-700">
-            {{ t('auth.email') }}
-          </label>
-          <input
-            id="email"
-            v-model="email"
-            type="email"
-            required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            :placeholder="t('auth.emailPlaceholder')"
-          />
-        </div>
+        <KcInput
+          v-model="loginId"
+          :label="t('auth.loginId')"
+          :placeholder="t('auth.loginIdPlaceholder')"
+          required
+          autocomplete="username"
+        />
 
-        <div>
-          <label for="password" class="block text-sm font-medium text-gray-700">
-            {{ t('auth.password') }}
-          </label>
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            :placeholder="t('validation.minLength', { min: 8 })"
-          />
-        </div>
+        <KcInput
+          v-model="email"
+          type="email"
+          :label="t('auth.email')"
+          :placeholder="t('auth.emailPlaceholder')"
+          required
+          autocomplete="email"
+        />
 
-        <div>
-          <label for="passwordConfirm" class="block text-sm font-medium text-gray-700">
-            {{ t('auth.passwordConfirm') }}
-          </label>
-          <input
-            id="passwordConfirm"
-            v-model="passwordConfirm"
-            type="password"
-            required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            :placeholder="t('auth.passwordConfirmPlaceholder')"
-          />
-        </div>
+        <KcInput
+          v-model="password"
+          type="password"
+          :label="t('auth.password')"
+          :placeholder="t('validation.minLength', { min: 8 })"
+          required
+          autocomplete="new-password"
+        />
 
-        <div v-if="validationError || authStore.error" class="text-red-600 text-sm text-center">
+        <KcInput
+          v-model="passwordConfirm"
+          type="password"
+          :label="t('auth.passwordConfirm')"
+          :placeholder="t('auth.passwordConfirmPlaceholder')"
+          required
+          autocomplete="new-password"
+        />
+
+        <div v-if="validationError || authStore.error" class="text-danger-600 text-sm text-center">
           {{ validationError || authStore.error }}
         </div>
 
-        <button
+        <KcButton
           type="submit"
-          :disabled="authStore.loading"
-          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          :loading="authStore.loading"
+          full-width
         >
-          <span v-if="authStore.loading">{{ t('auth.registering') }}</span>
-          <span v-else>{{ t('auth.register') }}</span>
-        </button>
+          {{ authStore.loading ? t('auth.registering') : t('auth.register') }}
+        </KcButton>
 
         <p class="text-center text-sm text-gray-600">
           {{ t('auth.hasAccount') }}

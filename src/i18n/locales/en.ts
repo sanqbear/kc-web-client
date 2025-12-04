@@ -14,6 +14,11 @@ export default {
     prev: 'Previous',
     next: 'Next',
   },
+  nav: {
+    home: 'Home',
+    tickets: 'Tickets',
+    settings: 'Settings',
+  },
   auth: {
     login: 'Login',
     logout: 'Logout',
