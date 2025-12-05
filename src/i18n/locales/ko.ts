@@ -13,6 +13,7 @@ export default {
     back: '뒤로',
     prev: '이전',
     next: '다음',
+    download: '다운로드',
   },
   nav: {
     home: '홈',
@@ -106,6 +107,25 @@ export default {
       FILE: '파일',
       SCHEDULE: '일정',
       EVENT: '이벤트',
+    },
+    entryForm: {
+      selectType: '엔트리 유형 선택',
+      comment: '코멘트',
+      file: '파일',
+      schedule: '일정',
+      uploadFile: '파일 업로드',
+      dragOrClick: '드래그 앤 드롭 또는 클릭하여 선택',
+      scheduleTitle: '제목',
+      scheduleTitlePlaceholder: '일정 제목을 입력하세요',
+      startDate: '시작일',
+      endDate: '종료일',
+      fileSelected: '선택된 파일: {name}',
+      uploading: '업로드 중...',
+    },
+    formatTypes: {
+      PLAIN_TEXT: '일반 텍스트',
+      MARKDOWN: '마크다운',
+      HTML: 'HTML',
     },
   },
   ews: {

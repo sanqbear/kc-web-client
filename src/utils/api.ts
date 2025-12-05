@@ -224,4 +224,32 @@ export const userApi = {
     request<PaginatedResponse<UserInfo>>(`/users?page=${page}&limit=${limit}`),
 }
 
+export const fileApi = {
+  upload: async (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const token = localStorage.getItem('accessToken')
+    const response = await fetch(`${API_BASE}/files`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      credentials: 'include',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new ApiError(
+        response.status,
+        errorData.message || errorData.error || 'Upload failed',
+      )
+    }
+
+    return response.json()
+  },
+
+  getDownloadUrl: (publicId: string) =>
+    `${API_BASE}/files/${publicId}/download`,
+}
+
 export { ApiError }

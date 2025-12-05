@@ -13,6 +13,7 @@ export default {
     back: 'Back',
     prev: 'Previous',
     next: 'Next',
+    download: 'Download',
   },
   nav: {
     home: 'Home',
@@ -107,6 +108,25 @@ export default {
       FILE: 'File',
       SCHEDULE: 'Schedule',
       EVENT: 'Event',
+    },
+    entryForm: {
+      selectType: 'Select entry type',
+      comment: 'Comment',
+      file: 'File',
+      schedule: 'Schedule',
+      uploadFile: 'Upload file',
+      dragOrClick: 'Drag and drop or click to select',
+      scheduleTitle: 'Title',
+      scheduleTitlePlaceholder: 'Enter schedule title',
+      startDate: 'Start date',
+      endDate: 'End date',
+      fileSelected: 'File selected: {name}',
+      uploading: 'Uploading...',
+    },
+    formatTypes: {
+      PLAIN_TEXT: 'Plain Text',
+      MARKDOWN: 'Markdown',
+      HTML: 'HTML',
     },
   },
   ews: {

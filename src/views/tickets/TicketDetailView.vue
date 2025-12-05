@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useTicketStore } from '@/stores/ticket'
 import { KcButton } from '@/components/ui'
+import EntryTypeSelector from '@/components/tickets/EntryTypeSelector.vue'
+import type { EntryFormData } from '@/components/tickets/EntryTypeSelector.vue'
 import type { TicketStatus, TicketPriority } from '@/types/ticket'
 
 const { t } = useI18n()
@@ -11,7 +13,6 @@ const route = useRoute()
 const router = useRouter()
 const ticketStore = useTicketStore()
 
-const newEntryBody = ref('')
 const showDeleteConfirm = ref(false)
 
 const ticketId = computed(() => route.params.id as string)
@@ -52,17 +53,26 @@ async function deleteTicket() {
   showDeleteConfirm.value = false
 }
 
-async function addEntry() {
-  if (!newEntryBody.value.trim()) return
-
-  const entry = await ticketStore.addEntry(ticketId.value, {
-    body: newEntryBody.value,
-    entry_type: 'COMMENT',
-    format: 'PLAIN_TEXT',
-  })
-
-  if (entry) {
-    newEntryBody.value = ''
+async function handleEntrySubmit(data: EntryFormData) {
+  if (data.entryType === 'COMMENT') {
+    await ticketStore.addEntry(ticketId.value, {
+      body: data.body,
+      entry_type: 'COMMENT',
+      format: data.format,
+    })
+  } else if (data.entryType === 'FILE' && data.file) {
+    await ticketStore.uploadFileEntry(ticketId.value, data.file)
+  } else if (data.entryType === 'SCHEDULE') {
+    await ticketStore.addEntry(ticketId.value, {
+      body: '',
+      entry_type: 'SCHEDULE',
+      format: 'NONE',
+      payload: {
+        title: data.scheduleTitle,
+        start_date: data.scheduleStartDate,
+        end_date: data.scheduleEndDate,
+      },
+    })
   }
 }
 
@@ -233,39 +243,86 @@ function getUserName(name?: { first?: string; last?: string }) {
                 {{ formatDate(entry.created_at) }}
               </span>
             </div>
-            <!-- Entry body with format-aware rendering -->
-            <div
-              v-if="entry.format === 'HTML'"
-              class="prose prose-sm max-w-none text-secondary-700"
-              v-html="entry.body"
-            />
-            <pre
-              v-else
-              class="text-secondary-700 whitespace-pre-wrap font-sans text-sm m-0"
-            >{{ entry.body }}</pre>
+
+            <!-- Entry content based on type -->
+            <div v-if="entry.entry_type === 'COMMENT'">
+              <!-- Comment body with format-aware rendering -->
+              <div
+                v-if="entry.format === 'HTML'"
+                class="prose prose-sm max-w-none text-secondary-700"
+                v-html="entry.body"
+              />
+              <div
+                v-else-if="entry.format === 'MARKDOWN'"
+                class="prose prose-sm max-w-none text-secondary-700"
+                v-html="entry.body"
+              />
+              <pre
+                v-else
+                class="text-secondary-700 whitespace-pre-wrap font-sans text-sm m-0"
+              >{{ entry.body }}</pre>
+            </div>
+
+            <!-- File entry -->
+            <div v-else-if="entry.entry_type === 'FILE'" class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-secondary-900">
+                  {{ entry.payload?.filename || 'File' }}
+                </p>
+                <p v-if="entry.payload?.size" class="text-xs text-secondary-500">
+                  {{ entry.payload.size }}
+                </p>
+              </div>
+              <a
+                v-if="entry.payload?.public_id"
+                :href="`/api/files/${entry.payload.public_id}/download`"
+                target="_blank"
+                download
+                class="px-3 py-1.5 text-xs font-medium bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+              >
+                {{ t('common.download') }}
+              </a>
+            </div>
+
+            <!-- Schedule entry -->
+            <div v-else-if="entry.entry_type === 'SCHEDULE'" class="space-y-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span class="text-sm font-medium text-secondary-900">
+                  {{ entry.payload?.title || t('ticket.entryTypes.SCHEDULE') }}
+                </span>
+              </div>
+              <div class="pl-7 space-y-1 text-sm text-secondary-600">
+                <p v-if="entry.payload?.start_date">
+                  <span class="font-medium">{{ t('ticket.entryForm.startDate') }}:</span>
+                  {{ formatDate(entry.payload.start_date as string) }}
+                </p>
+                <p v-if="entry.payload?.end_date">
+                  <span class="font-medium">{{ t('ticket.entryForm.endDate') }}:</span>
+                  {{ formatDate(entry.payload.end_date as string) }}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Add entry form -->
         <div class="mt-6 pt-6 border-t border-secondary-200">
-          <h3 class="text-sm font-medium text-secondary-700 mb-2">
+          <h3 class="text-sm font-medium text-secondary-700 mb-4">
             {{ t('ticket.addEntry') }}
           </h3>
-          <textarea
-            v-model="newEntryBody"
-            rows="3"
-            class="w-full px-3 py-2 border border-secondary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors resize-none"
-            :placeholder="t('ticket.entryPlaceholder')"
-          ></textarea>
-          <div class="flex justify-end mt-3">
-            <KcButton
-              :disabled="!newEntryBody.trim()"
-              :loading="ticketStore.loading"
-              @click="addEntry"
-            >
-              {{ t('ticket.submitEntry') }}
-            </KcButton>
-          </div>
+          <EntryTypeSelector
+            :disabled="ticketStore.loading"
+            :loading="ticketStore.loading"
+            @submit="handleEntrySubmit"
+          />
         </div>
       </div>
     </div>

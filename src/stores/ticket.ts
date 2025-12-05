@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { ticketApi, entryApi } from '@/utils/api'
+import { ticketApi, entryApi, fileApi } from '@/utils/api'
 import type {
   TicketListResponse,
   TicketDetailResponse,
@@ -170,6 +170,43 @@ export const useTicketStore = defineStore('ticket', () => {
     }
   }
 
+  async function uploadFileEntry(ticketId: string, file: File) {
+    loading.value = true
+    error.value = null
+
+    try {
+      // First upload the file
+      const uploadResponse = await fileApi.upload(file)
+
+      // Then create entry with file info
+      const entry = await entryApi.create(ticketId, {
+        body: '',
+        entry_type: 'FILE',
+        format: 'NONE',
+        payload: {
+          public_id: uploadResponse.public_id,
+          filename: uploadResponse.filename || file.name,
+          size: uploadResponse.size,
+          mime_type: uploadResponse.mime_type || file.type,
+        },
+      })
+
+      if (currentTicket.value?.id === ticketId) {
+        currentTicket.value.entries = [
+          ...(currentTicket.value.entries || []),
+          entry,
+        ]
+      }
+
+      return entry
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to upload file'
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
   function clearCurrentTicket() {
     currentTicket.value = null
   }
@@ -190,6 +227,7 @@ export const useTicketStore = defineStore('ticket', () => {
     searchTickets,
     addEntry,
     deleteEntry,
+    uploadFileEntry,
     clearCurrentTicket,
   }
 })
