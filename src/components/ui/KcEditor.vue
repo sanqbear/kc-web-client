@@ -4,6 +4,11 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
+import Image from '@tiptap/extension-image'
+import { Table } from '@tiptap/extension-table'
+import { TableRow } from '@tiptap/extension-table-row'
+import { TableCell } from '@tiptap/extension-table-cell'
+import { TableHeader } from '@tiptap/extension-table-header'
 import { marked } from 'marked'
 
 export type EditorFormat = 'PLAIN_TEXT' | 'MARKDOWN' | 'HTML'
@@ -63,6 +68,16 @@ const editor = useEditor({
     Link.configure({
       openOnClick: false,
     }),
+    Image.configure({
+      inline: true,
+      allowBase64: true,
+    }),
+    Table.configure({
+      resizable: true,
+    }),
+    TableRow,
+    TableCell,
+    TableHeader,
   ],
   editable: !props.disabled,
   onUpdate: ({ editor: ed }) => {
@@ -539,6 +554,44 @@ const formatOptions: { value: EditorFormat; label: string }[] = [
 
 .kc-editor-content :deep(.tiptap p) {
   margin-bottom: 0.5rem;
+}
+
+.kc-editor-content :deep(.tiptap img) {
+  max-width: 100%;
+  height: auto;
+}
+
+.kc-editor-content :deep(.tiptap table) {
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.kc-editor-content :deep(.tiptap table td),
+.kc-editor-content :deep(.tiptap table th) {
+  border: 1px solid var(--color-secondary-300);
+  padding: 0.5rem;
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.kc-editor-content :deep(.tiptap table th) {
+  background-color: var(--color-secondary-100);
+  font-weight: 600;
+}
+
+.kc-editor-content :deep(.tiptap table .selectedCell:after) {
+  background: var(--color-primary-100);
+  content: "";
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
 }
 
 /* Markdown preview prose styles */

@@ -15,6 +15,15 @@ export interface EmailListItem {
   preview?: string
 }
 
+export interface AttachmentInfo {
+  attachment_id: string
+  name: string
+  content_type: string
+  content_id?: string
+  size: number
+  is_inline: boolean
+}
+
 export interface EmailDetail {
   item_id: string
   conversation_id?: string
@@ -32,6 +41,7 @@ export interface EmailDetail {
   importance?: string
   categories?: string[]
   internet_message_id?: string
+  attachments?: AttachmentInfo[]
 }
 
 export interface ListEmailsResponse {
