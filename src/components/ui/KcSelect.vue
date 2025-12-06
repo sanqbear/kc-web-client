@@ -63,6 +63,9 @@ const triggerRef = ref<HTMLElement | null>(null)
 const dropdownRef = ref<HTMLElement | null>(null)
 const optionRefs = ref<(HTMLElement | null)[]>([])
 
+// Teleported dropdown positioning
+const dropdownStyle = ref<Record<string, string>>({})
+
 const hasError = computed(() => !!props.error)
 
 const selectedOption = computed(() =>
@@ -190,9 +193,8 @@ const iconClasses = computed(() => {
 
 const dropdownClasses = computed(() => {
   const base = [
-    'absolute',
-    'z-50',
-    'w-full',
+    'fixed',
+    'z-[9999]',
     'bg-white',
     'border',
     'border-secondary-200',
@@ -203,12 +205,6 @@ const dropdownClasses = computed(() => {
     'overflow-y-auto',
   ]
 
-  if (dropdownPosition.value === 'top') {
-    base.push('bottom-full', 'mb-1')
-  } else {
-    base.push('top-full', 'mt-1')
-  }
-
   return base.join(' ')
 })
 
@@ -217,14 +213,38 @@ function calculatePosition() {
 
   const triggerRect = triggerRef.value.getBoundingClientRect()
   const viewportHeight = window.innerHeight
+  const viewportWidth = window.innerWidth
   const spaceBelow = viewportHeight - triggerRect.bottom
   const spaceAbove = triggerRect.top
   const dropdownHeight = Math.min(240, props.options.length * 40)
 
+  // Determine position (top or bottom)
+  let top: number
   if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
     dropdownPosition.value = 'top'
+    top = triggerRect.top - dropdownHeight - 4
   } else {
     dropdownPosition.value = 'bottom'
+    top = triggerRect.bottom + 4
+  }
+
+  // Calculate horizontal position
+  let left = triggerRect.left
+  const width = triggerRect.width
+
+  // Ensure dropdown doesn't overflow viewport
+  if (left + width > viewportWidth) {
+    left = viewportWidth - width - 8
+  }
+  if (left < 8) {
+    left = 8
+  }
+
+  // Update dropdown style
+  dropdownStyle.value = {
+    top: `${Math.max(8, Math.min(top, viewportHeight - dropdownHeight - 8))}px`,
+    left: `${left}px`,
+    width: `${width}px`,
   }
 }
 
@@ -474,8 +494,10 @@ onBeforeUnmount(() => {
           />
         </svg>
       </div>
+    </div>
 
-      <!-- Dropdown menu -->
+    <!-- Teleported Dropdown menu -->
+    <Teleport to="body">
       <Transition
         enter-active-class="transition duration-150 ease-out"
         enter-from-class="opacity-0 scale-95"
@@ -492,6 +514,7 @@ onBeforeUnmount(() => {
           :aria-labelledby="label ? `${selectId}-label` : undefined"
           :class="dropdownClasses"
           :style="{
+            ...dropdownStyle,
             transformOrigin: dropdownPosition === 'top' ? 'bottom' : 'top',
           }"
         >
@@ -511,7 +534,7 @@ onBeforeUnmount(() => {
           </li>
         </ul>
       </Transition>
-    </div>
+    </Teleport>
 
     <!-- 에러 메시지 -->
     <p v-if="error" class="mt-1.5 text-sm text-danger-600">
